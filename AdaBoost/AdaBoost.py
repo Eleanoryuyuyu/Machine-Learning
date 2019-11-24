@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 
 
 def loadData():
-    dataMat = np.matrix([
-        [1., 2.1],
-        [2., 1.1],
-        [1.3, 1.],
-        [1., 1.],
-        [2., 1.]])
-    classLabels = [1.0, 1.0, -1.0, -1.0, 1.0]
-    return dataMat, classLabels
+    dataMat = []
+    labelMat = []
+    with open('../data/SVMTestSet.txt') as f:
+        for line in f.readlines():
+            lineArr = line.strip().split()
+            dataMat.append([float(lineArr[0]), float(lineArr[1])])
+            labelMat.append(int(lineArr[2]))
+    return dataMat, labelMat
 
 
 def showData(dataMat, labelMat):
@@ -67,7 +67,7 @@ def buildStump(dataArr, classLabels, D):
                     bestStump['ineq'] = inequa
     return bestStump, minError, bestClasEat
 
-def adaBoostTrainDS(dataArr, classLabels, numIter = 40):
+def adaBoostTrainDS(dataArr, classLabels, numIter = 50):
     weakClassArr = []
     m = len(dataMat)
     D = np.mat(np.ones((m,1))/m)
@@ -90,9 +90,20 @@ def adaBoostTrainDS(dataArr, classLabels, numIter = 40):
             break
     return weakClassArr
 
+def adaClassify(datToClass, classifyArr):
+    dataMat = np.mat(datToClass)
+    m = len(dataMat)
+    aggClassEst = np.zeros((m, 1))
+    for i in range(len(classifyArr)):
+        classEst = stumpClassify(dataMat, classifyArr[i]['dim'], classifyArr[i]['threshVal'],\
+                    classifyArr[i]['ineq'])
+        aggClassEst += classifyArr[i]['alpha'] * classEst
+        print("aggClassEst:", aggClassEst)
+    return np.sign(aggClassEst)
 
 if __name__ == '__main__':
     dataMat, labelMat = loadData()
     showData(dataMat, labelMat)
     weakClassify = adaBoostTrainDS(dataMat, labelMat)
-    print(weakClassify)
+    result = adaClassify([[0,0],[5,5]], weakClassify)
+    print(result)
